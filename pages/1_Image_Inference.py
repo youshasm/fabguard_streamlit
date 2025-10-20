@@ -1,12 +1,14 @@
 import streamlit as st
 import torch
-from ultralytics import YOLO
 import numpy as np
 from PIL import Image
-import cv2
 import tempfile
 import os
 import io
+
+# Note: ultralytics and cv2 import are done lazily inside functions so that
+# deployment environments missing system libs (like libGL) can show a clear
+# message instead of crashing the whole app at import time.
 
 # Set page configuration
 st.set_page_config(
@@ -21,6 +23,18 @@ st.set_page_config(
 def load_model():
     """Load the trained YOLO model"""
     try:
+        # Import YOLO lazily to catch system-level import errors (e.g. libGL)
+        try:
+            from ultralytics import YOLO
+        except Exception as e:
+            # If cv2 or other native libs failed to load, provide guidance
+            st.error(
+                "System libraries required by OpenCV/Ultralytics are missing. "
+                "On Linux use a packages file or install `libgl1-mesa-glx` and `libglib2.0-0`."
+            )
+            st.exception(e)
+            return None
+
         model = YOLO('model.pt')
         return model
     except Exception as e:

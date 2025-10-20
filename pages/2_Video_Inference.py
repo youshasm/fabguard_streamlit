@@ -1,13 +1,13 @@
 import streamlit as st
 import torch
-from ultralytics import YOLO
 import numpy as np
 from PIL import Image
-import cv2
 import tempfile
 import os
 import io
 import time
+
+# Lazy import ultralytics/cv2 to provide clearer errors in hosted environments
 
 # Set page configuration
 st.set_page_config(
@@ -22,6 +22,16 @@ st.set_page_config(
 def load_model():
     """Load the trained YOLO model"""
     try:
+        try:
+            from ultralytics import YOLO
+        except Exception as e:
+            st.error(
+                "System libraries required by OpenCV/Ultralytics are missing on the host. "
+                "Please add 'libgl1-mesa-glx' and 'libglib2.0-0' to packages.txt for Streamlit Cloud or install them on your server."
+            )
+            st.exception(e)
+            return None
+
         model = YOLO('model.pt')
         return model
     except Exception as e:
@@ -44,6 +54,17 @@ def process_video(video_path, model, confidence_threshold=0.5, progress_bar=None
         stats: Detection statistics
     """
     try:
+        # Lazy import cv2 to allow clearer error messages if system libs are missing
+        try:
+            import cv2
+        except Exception as e:
+            st.error(
+                "OpenCV (cv2) failed to import. The host may be missing system libraries like libGL. "
+                "On Streamlit Cloud add 'libgl1-mesa-glx' and 'libglib2.0-0' to packages.txt or install them on your server."
+            )
+            st.exception(e)
+            return None, None
+
         # Open video
         cap = cv2.VideoCapture(video_path)
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -170,6 +191,16 @@ def main():
         
         # Display video info
         try:
+            try:
+                import cv2
+            except Exception as e:
+                st.error(
+                    "OpenCV (cv2) failed to import. The host may be missing system libraries like libGL. "
+                    "On Streamlit Cloud add 'libgl1-mesa-glx' and 'libglib2.0-0' to packages.txt or install them on your server."
+                )
+                st.exception(e)
+                return
+
             cap = cv2.VideoCapture(temp_video_path)
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             fps = int(cap.get(cv2.CAP_PROP_FPS))
