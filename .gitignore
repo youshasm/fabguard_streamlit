@@ -41,7 +41,6 @@ Thumbs.db
 .streamlit/
 
 # Model files (too large for git)
-*.pt
 *.pth
 *.onnx
 *.weights
