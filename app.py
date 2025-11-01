@@ -267,7 +267,8 @@ def image_inference_tab(model_type):
     else:
         model_options = {
             "YOLOv11n Multi": "models/yolov11n_multi.pt",
-            "YOLOv8n Multi": "models/yolov8n_multi.pt"
+            "YOLOv8n Multi": "models/yolov8n_multi.pt",
+            "YOLOv5n Multi": "models/yolov5n_multi.pt"
         }
         selected_model = st.selectbox("Select Model:", list(model_options.keys()))
         model_path = model_options[selected_model]
